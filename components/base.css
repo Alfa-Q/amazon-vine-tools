@@ -1,0 +1,16 @@
+nav {
+  -ms-overflow-style: scrollbar;
+  -webkit-app-region: drag;
+}
+
+.display-5 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.display-6 {
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1.2;
+}

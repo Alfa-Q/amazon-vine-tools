@@ -1,0 +1,82 @@
+.bg-darkish {
+  background-color: darkslategray;
+}
+
+.toast {
+  min-width: 400px;
+  margin-top: auto;
+}
+
+.toast-container {
+  min-width: 400px;
+  min-height: 200px;
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  display: flex;
+  flex-direction: column-reverse;
+  flex-wrap: nowrap;
+}
+
+.bottom {
+  margin-top: auto;
+  bottom: 0px;
+}
+
+#main {
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 8px;
+}
+
+#sidebar {
+  position: relative;
+  top: -8px;
+  height: calc(100vh - 57px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: block;
+  margin-left: 0px;
+  margin-right: 0px;
+  width: 250px;
+  color: grey;
+}
+
+#sidebar .nav-item {
+  margin-top: 8px;
+  margin-left: 0px;
+  margin-right: 0px;
+  width: 100%;
+}
+
+#sidebar .nav-item button {
+  color: white;
+  width: 100%;
+}
+
+nav {
+  -webkit-app-region: drag;
+}
+
+button {
+  -webkit-app-region: no-drag;
+}
+
+.display-5 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.display-6 {
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+#items-container {
+  overflow-y: scroll;
+  max-height: 400px;
+  min-height: 400px;
+  min-width: 100%;
+}

@@ -1,0 +1,40 @@
+{
+  "name": "amazon-vine-tools",
+  "version": "1.0.0",
+  "description": "amazon-vine-tools",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alfa-Q/amazon-vine-tools.git"
+  },
+  "keywords": [
+    "amazon",
+    "vine",
+    "amazon",
+    "vine",
+    "tools",
+    "application"
+  ],
+  "author": "alfa-q",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Alfa-Q/amazon-vine-tools/issues"
+  },
+  "homepage": "https://github.com/Alfa-Q/amazon-vine-tools#readme",
+  "devDependencies": {
+    "electron": "^9.1.1"
+  },
+  "dependencies": {
+    "bootstrap": "^4.5.0",
+    "cheerio": "^1.0.0-rc.3",
+    "electron-fetch": "^1.4.0",
+    "electron-store": "^6.0.0",
+    "jquery": "^3.5.1",
+    "popper.js": "^1.16.1",
+    "pouchdb": "^7.2.2",
+    "sweetalert2": "^9.17.1"
+  }
+}

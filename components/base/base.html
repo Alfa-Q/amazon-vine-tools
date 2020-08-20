@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>AMAZON VINE TOOLS</title>
+    <!-- STYLESHEETS -->
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="./base.css" />
+    <!-- SCRIPTS -->
+    <script src="../../node_modules/pouchdb/dist/pouchdb.min.js"></script>
+    <script src="search.js"></script>
+    <script src="base.js"></script>
+    <script src="window.js" defer></script>
+  </head>
+  <body class="bg-dark">
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand col-md-2 px-0" href="#">AMAZON VINE TOOLS</a>
+      <button
+        id="minimize-window"
+        class="btn btn-secondary mb-auto ml-auto mr-2 inline-flex"
+        type="button"
+        aria-label="Minimize"
+      ></button>
+      <button
+        id="close-window"
+        class="btn btn-danger mb-auto inline-flex"
+        type="button"
+        aria-label="Close"
+      ></button>
+    </nav>
+
+    <div class="container-fluid px-0 mx-0 fixed-bottom">
+      <div class="row mx-0 px-0">
+        <!-- Sidebar -->
+        <div id="sidebar" class="col-2 col-md-2 bg-dark flex-column d-flex">
+          <ul class="nav">
+            <li class="nav-item">
+              <button
+                id="btn-search"
+                type="button"
+                class="btn btn-primary"
+                onclick="updateView(this)"
+              >
+                <div class="display-6">search</div>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button
+                id="btn-bookmarks"
+                type="button"
+                class="btn btn-primary"
+                onclick="updateView(this)"
+                disabled="true"
+              >
+                <div class="display-6">bookmarks</div>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button
+                id="btn-settings"
+                type="button"
+                class="btn btn-primary"
+                onclick="updateView(this)"
+                disabled="true"
+              >
+                <div class="display-6">settings</div>
+              </button>
+            </li>
+          </ul>
+          <div class="mt-auto">
+            <hr />
+            <div class="text-center">created by alfa_q</div>
+            <div class="text-center">version 1.0.0</div>
+          </div>
+        </div>
+        <!-- Main Content -->
+        <div class="col-10 bg-darkish text-light rounded-left px-0 mx-0">
+          <!-- Title -->
+          <h5 id="main-title" class="ml-3 mt-2"></h5>
+          <div id="main">
+            <!-- Search and Item Query -->
+            <div id="search">
+              <hr />
+              <!-- Filter -->
+              <div class="card mx-3 bg-darkish">
+                <div class="card-header">
+                  <h6>FILTER ITEMS</h6>
+                </div>
+                <div class="card-body">
+                  <!-- Filter Control -->
+                  <form role="form">
+                    <div class="form-group row">
+                      <!-- Search Filter -->
+                      <div class="col-4">
+                        <label for="search">Item Name</label>
+                        <input
+                          id="filter-search"
+                          class="form-control"
+                          type="search"
+                          placeholder="Search"
+                          aria-label="Search"
+                        />
+                      </div>
+                      <!-- Min Tax Value -->
+                      <div class="col-2">
+                        <label for="tax-value-min">Minimum Tax Value</label>
+                        <div class="input-group mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                          </div>
+                          <input
+                            id="tax-value-min"
+                            type="text"
+                            class="form-control"
+                            placeholder="0.00"
+                            aria-label="Amount (to the nearest dollar)"
+                          />
+                        </div>
+                      </div>
+                      <!-- Max Tax Value -->
+                      <div class="col-2">
+                        <label for="tax-value-max">Maximum Tax Value</label>
+                        <div class="input-group mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                          </div>
+                          <input
+                            id="tax-value-max"
+                            type="text"
+                            class="form-control"
+                            placeholder="+1000.00"
+                            aria-label="Amount (to the nearest dollar)"
+                          />
+                        </div>
+                      </div>
+                      <!-- Minimum Rating -->
+                      <div class="col-2">
+                        <label for="min-rating">Minimum Rating</label>
+                        <div class="input-group mb-3">
+                          <select class="custom-select" id="min-rating">
+                            <option selected>Any</option>
+                            <option value="1">⭐</option>
+                            <option value="2">⭐⭐</option>
+                            <option value="3">⭐⭐⭐</option>
+                            <option value="4">⭐⭐⭐⭐</option>
+                            <option value="5">⭐⭐⭐⭐⭐</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group row">
+                      <!-- Order of Items -->
+                      <div class="col-4">
+                        <label for="order-by">Order By</label>
+                        <div class="input-group mb-3">
+                          <select class="custom-select" id="order-by">
+                            <option value="default" selected>Default</option>
+                            <option value="name">Name</option>
+                            <option value="tax-value">Tax Value</option>
+                            <option value="rating">Star Rating</option>
+                            <option value="retail-value">Retail Value</option>
+                            <option value="percent-diff">% Difference</option>
+                          </select>
+                        </div>
+                      </div>
+                      <!-- Direction of Order -->
+                      <div class="col-2">
+                        <label for="order-direction">Direction</label>
+                        <div class="input-group mb-3">
+                          <select class="custom-select" id="order-direction">
+                            <option value="descending" selected>Descending</option>
+                            <option value="ascending">Ascending</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Apply Button -->
+                      <div class="col-2">
+                        <label for="apply-filter">&nbsp</label>
+                        <button
+                          id="apply-filter"
+                          type="button"
+                          class="btn btn-primary btn-block"
+                          onclick="applyFilter()"
+                        >
+                          Apply Filter
+                        </button>
+                      </div>
+                      <!-- Clear Button -->
+                      <div class="col-2">
+                        <label for="clear-filter">&nbsp</label>
+                        <button
+                          id="clear-filter"
+                          type="button"
+                          class="btn btn-secondary btn-block"
+                          onclick="clearFilter()"
+                        >
+                          Clear Filter
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Search Information Bar -->
+              <div id="search-info" class="container mx-3 mt-4">
+                <div class="row">
+                  <div class="display-6">0 Items Found</div>
+                </div>
+              </div>
+              <hr />
+              <!-- Vine Items Container -->
+              <div id="items-container" class="container">
+                <ul class="list-unstyled list-group"></ul>
+              </div>
+            </div>
+          </div>
+          <!-- Toast Container -->
+          <div class="toast-container" aria-live="polite" aria-atomic="true">
+            <!-- Position it -->
+            <div style="position: absolute;">
+              <!-- Toast Update Item Db -->
+              <div
+                id="toast-4"
+                class="toast d-block"
+                data-autohide="false"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
+                <div class="toast-header">
+                  <div class="toast-icon mr-2">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  </div>
+                  <div class="toast-title mr-4">
+                    <strong>Updating Item Database</strong>
+                  </div>
+                  <div class="toast-time ml-auto">
+                    <small class="text-muted"></small>
+                  </div>
+                </div>
+                <div class="toast-body text-dark">
+                  It's time for an update! Updating the Item database.
+                </div>
+                <div class="progress" style="height: 4px;">
+                  <div
+                    class="progress-bar progress-bar-striped progress-bar-animated"
+                    role="progressbar"
+                    style="width: 100%;"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  ></div>
+                </div>
+              </div>
+              <!-- Toast Check Item Db For Update -->
+              <div
+                id="toast-3"
+                class="toast d-block"
+                data-autohide="false"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
+                <div class="toast-header">
+                  <div class="toast-icon mr-2">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                      <span class="sr-only">Retrieving Data...</span>
+                    </div>
+                  </div>
+                  <div class="toast-title mr-4">
+                    <strong>Checking For Update</strong>
+                  </div>
+                  <div class="toast-time ml-auto">
+                    <small class="text-muted"></small>
+                  </div>
+                </div>
+                <div class="toast-body text-dark">
+                  Checking if the Item database needs an update...
+                </div>
+              </div>
+              <!-- Toast Update Category Db -->
+              <div
+                id="toast-2"
+                class="toast d-block"
+                data-autohide="false"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
+                <div class="toast-header">
+                  <div class="toast-icon mr-2">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  </div>
+                  <div class="toast-title mr-4">
+                    <strong>Updating Category Database</strong>
+                  </div>
+                  <div class="toast-time ml-auto">
+                    <small class="text-muted"></small>
+                  </div>
+                </div>
+                <div class="toast-body text-dark">
+                  It's time for an update! Updating the Category database.
+                </div>
+                <div class="progress" style="height: 4px;">
+                  <div
+                    class="progress-bar progress-bar-striped progress-bar-animated"
+                    role="progressbar"
+                    style="width: 100%;"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  ></div>
+                </div>
+              </div>
+              <!-- Toast Check Category Db For Update -->
+              <div
+                id="toast-1"
+                class="toast d-block"
+                data-autohide="false"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
+                <div class="toast-header">
+                  <div class="toast-icon mr-2">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  </div>
+                  <div class="toast-title mr-auto">
+                    <strong>Checking For Update</strong>
+                  </div>
+                  <div class="toast-time ml-auto">
+                    <small class="text-muted">...</small>
+                  </div>
+                </div>
+                <div class="toast-body text-dark">
+                  Checking if the Category database needs an update...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
