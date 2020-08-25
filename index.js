@@ -9,7 +9,9 @@ const PouchDB = require("pouchdb");
 
 const { app, BrowserWindow, ipcMain, session } = electron;
 
-// GLOBAL
+// ================================================================================================
+// GLOBALS
+// ================================================================================================
 let mainWindow;
 const DB = Object.freeze({
   ITEM_CATEGORIES: new PouchDB("categories"),
@@ -66,8 +68,26 @@ const QUEUE = Object.freeze({
 const DIR = Object.freeze({
   IMG_CACHE: path.join(__dirname, "cache"),
 });
+const SETTINGS = new Store({
+  schema: {
+    settings: {
+      type: "object",
+      properties: {
+        max_threads: {
+          type: "number",
+          minimum: 1,
+          maximum: 50,
+          default: 5,
+        },
+      },
+      default: {},
+    },
+  },
+});
 
-//#region init
+// ================================================================================================
+// INITIALIZATION FUNCTIONS
+// ================================================================================================
 /**
  * Create main window.
  */
@@ -76,7 +96,6 @@ function createWindow() {
     width: 1400,
     height: 900,
     title: "Amazon Vine Tools",
-    resizable: false,
     webPreferences: {
       nodeIntegration: true,
     },
@@ -85,6 +104,9 @@ function createWindow() {
   });
 }
 
+// ================================================================================================
+// LOGIN FUNCTIONS
+// ================================================================================================
 /**
  * Handle checking if the user is logged in to Amazon.
  */
@@ -131,9 +153,10 @@ function handleLoginStep(parsed) {
     mainWindow.webContents.loadURL(URL.AMAZON_VINE);
   }
 }
-//#endregion
 
-//#region utils
+// ================================================================================================
+// UTILITY FUNCTIONS
+// ================================================================================================
 /**
  * Get current Electron session cookies from the application.
  * @returns Cookies from the current session as a string.
@@ -163,8 +186,10 @@ function generateRandomNumber(min, max) {
   const random = Math.random() * (max - min) + min;
   return random.toFixed(3);
 }
-//#endregion
 
+// ================================================================================================
+// DATA RETRIEVAL FUNCTIONS
+// ================================================================================================
 /**
  * Retrieve webpage HTML containing Vine items from Amazon.
  * @param {string} queue
@@ -260,12 +285,6 @@ async function scrapeVineSubcategories(parentNodeId) {
   return subcategories;
 }
 
-//#region get-item-info
-/**
- * Scrape products on a vine page.
- * @param {string} html Vine Page HTML.
- * @returns A list of scraped Amazon Vine products with incomplete item data.
- */
 async function scrapeVinePage(html) {
   console.log("Scraping Vine HTML Page...");
   const page = cheerio.load(html);
@@ -291,11 +310,10 @@ async function scrapeVinePage(html) {
   // Download Item Thumbnail Image And Use Cached Version
   for (const item of scrapedItems) {
     const thumbnailFilepath = path.join(DIR.IMG_CACHE, item.thumbnail.split("/").pop());
-    if (!fs.existsSync(thumbnailFilepath)) {
-      await downloadResource(thumbnailFilepath, item.thumbnail);
-    } else {
-      console.log("Thumbnail already exists, skipping...");
-    }
+    await fs
+      .access(thumbnailFilepath)
+      .then(() => console.log("Thumbnail already exists, skipping..."))
+      .catch(async () => await updateThumbnail(thumbnailFilepath, item.thumbnail));
     item.thumbnail = thumbnailFilepath;
   }
 
@@ -358,7 +376,10 @@ async function getVineItemData(scrapedItem, referer = null) {
 
   return json["result"];
 }
-//#endregion
+
+// ================================================================================================
+// BACKEND EVENT HANDLER FUNCTIONS
+// ================================================================================================
 
 ipcMain.handle("check-update:categories", async (event) => {
   try {
@@ -425,11 +446,22 @@ ipcMain.handle("check-update:items", async (event) => {
 
 ipcMain.handle("update-db:items", async (event) => {
   try {
-    console.log("\n", "Retrieving updated data from amazon...");
+    // Unlist all old items. If some items are still available, they will
+    // be remarked as listed later.
+    console.log("Setting items as unlisted...");
+    const itemDocs = await DB.ITEMS.allDocs({ include_docs: true });
+    const oldItems = itemDocs.rows.map((x) => x.doc);
+    oldItems.forEach((item) => {
+      item.listed = false;
+    });
+    DB.ITEMS.bulkDocs(console.log("Marked all old items as unlisted."));
 
+    // Get Categories
+    console.log("\n", "Retrieving updated data from amazon...");
     const categoryDocs = await DB.ITEM_CATEGORIES.allDocs({ include_docs: true });
     const categories = categoryDocs.rows.map((x) => x.doc);
 
+    // Determine the total number of listed items
     const totalItems = categories
       .map((category) =>
         category.subcategories
@@ -477,16 +509,10 @@ ipcMain.handle("update-db:items", async (event) => {
             category: category["name"],
             subcategory: subcategory["name"],
             position: i + 1,
+            listed: true,
           };
           await DB.ITEMS.put(item)
-            .then(
-              event.sender.send(
-                "update:item",
-                `Got Item ${item.productName}`,
-                itemProgress,
-                totalItems
-              )
-            )
+            .then(event.sender.send("update:item", item, itemProgress, totalItems))
             .catch((error) => {
               DB.ITEMS.get(item._id).then((doc) => DB.ITEMS.put({ ...item, _rev: doc._rev }));
             });
@@ -530,7 +556,7 @@ ipcMain.handle("fetch-db:items", async (event) => {
       .then((items) => {
         return {
           error: false,
-          items: items,
+          items: items.filter((x) => x.listed), // Only retrieve the currently listed items
           msg: "Successfully retrieved all items from database.",
         };
       });
@@ -539,13 +565,33 @@ ipcMain.handle("fetch-db:items", async (event) => {
   }
 });
 
-ipcMain.handle("wipe-db:items", async (event) => {
-  console.log();
-  console.log("Wiping the Items database...");
-  DB.ITEMS.allDocs()
-    .then((response) => console.log(`Removing all ${response.total_rows} items from the database.`))
-    .then(DB.ITEMS.destroy())
-    .finally(console.log(`Cleared items database!`));
+ipcMain.handle("fetch-settings", async (event) => {
+  try {
+    console.log("\n", "Fetching application settings...");
+    return {
+      error: false,
+      settings: SETTINGS.store.settings,
+      msg: "Successfully retrieved settings!",
+    };
+  } catch (error) {
+    return { error: false, msg: error.message };
+  }
 });
 
+ipcMain.handle("wipe-db:items", async (event) => {
+  console.log("\n", "Wiping the Items database...");
+  return await DB.ITEMS.destroy()
+    .then(() => {
+      DB.ITEMS = new PouchDB("vine-items");
+    })
+    .then(DB._STORE.reset("items"))
+    .then(() => {
+      return { error: false, msg: "Successfully reset the Item database" };
+    })
+    .catch((error) => {
+      return { error: true, msg: error.message };
+    });
+});
+
+// Starts the application
 app.whenReady().then(createWindow).then(handleLoginCheck);

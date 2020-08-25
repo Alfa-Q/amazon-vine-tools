@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="./base.css" />
     <!-- SCRIPTS -->
     <script src="../../node_modules/pouchdb/dist/pouchdb.min.js"></script>
-    <script src="search.js"></script>
     <script src="base.js"></script>
     <script src="window.js" defer></script>
   </head>
@@ -28,7 +27,6 @@
         aria-label="Close"
       ></button>
     </nav>
-
     <div class="container-fluid px-0 mx-0 fixed-bottom">
       <div class="row mx-0 px-0">
         <!-- Sidebar -->
@@ -74,19 +72,29 @@
           </div>
         </div>
         <!-- Main Content -->
-        <div class="col-10 bg-darkish text-light rounded-left px-0 mx-0">
+        <div id="main" class="col-10 bg-darkish text-light rounded-left px-0 mx-0">
           <!-- Title -->
           <h5 id="main-title" class="ml-3 mt-2"></h5>
-          <div id="main">
+          <div id="main-body">
             <!-- Search and Item Query -->
-            <div id="search">
-              <hr />
+            <div id="search" class="border container-fluid flex-column m-0 p-0">
               <!-- Filter -->
-              <div class="card mx-3 bg-darkish">
-                <div class="card-header">
-                  <h6>FILTER ITEMS</h6>
+              <div class="card mx-3 bg-darkish d-block">
+                <div
+                  class="card-header unselectable"
+                  data-toggle="collapse"
+                  href="#filter"
+                  aria-expanded="true"
+                  aria-controls="filter-body"
+                >
+                  <img
+                    src="../../static/chevron-down-26.png"
+                    class="chevron-down pull-right mb-1"
+                  />
+                  <img src="../../static/chevron-up-26.png" class="chevron-up pull-right mb-1" />
+                  <h6 class="d-inline">FILTER ITEMS</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body collapse show" id="filter" aria-labelledby="filter-body">
                   <!-- Filter Control -->
                   <form role="form">
                     <div class="form-group row">
@@ -101,49 +109,21 @@
                           aria-label="Search"
                         />
                       </div>
-                      <!-- Min Tax Value -->
+                      <!-- Category -->
                       <div class="col-2">
-                        <label for="tax-value-min">Minimum Tax Value</label>
+                        <label for="filter-category">Category</label>
                         <div class="input-group mb-3">
-                          <div class="input-group-prepend">
-                            <span class="input-group-text">$</span>
-                          </div>
-                          <input
-                            id="tax-value-min"
-                            type="text"
-                            class="form-control"
-                            placeholder="0.00"
-                            aria-label="Amount (to the nearest dollar)"
-                          />
+                          <select class="custom-select" id="filter-category">
+                            <option value="default" selected>All</option>
+                          </select>
                         </div>
                       </div>
-                      <!-- Max Tax Value -->
+                      <!-- Subcategory -->
                       <div class="col-2">
-                        <label for="tax-value-max">Maximum Tax Value</label>
+                        <label for="filter-subcategory">Subcategory</label>
                         <div class="input-group mb-3">
-                          <div class="input-group-prepend">
-                            <span class="input-group-text">$</span>
-                          </div>
-                          <input
-                            id="tax-value-max"
-                            type="text"
-                            class="form-control"
-                            placeholder="+1000.00"
-                            aria-label="Amount (to the nearest dollar)"
-                          />
-                        </div>
-                      </div>
-                      <!-- Minimum Rating -->
-                      <div class="col-2">
-                        <label for="min-rating">Minimum Rating</label>
-                        <div class="input-group mb-3">
-                          <select class="custom-select" id="min-rating">
-                            <option selected>Any</option>
-                            <option value="1">⭐</option>
-                            <option value="2">⭐⭐</option>
-                            <option value="3">⭐⭐⭐</option>
-                            <option value="4">⭐⭐⭐⭐</option>
-                            <option value="5">⭐⭐⭐⭐⭐</option>
+                          <select class="custom-select" id="filter-subcategory">
+                            <option value="default" selected>All</option>
                           </select>
                         </div>
                       </div>
@@ -200,19 +180,70 @@
                         </button>
                       </div>
                     </div>
+
+                    <!-- To Be Implemented 
+                    <div class="form-group row">
+                      !-- Min Tax Value --
+                      <div class="col-2">
+                        <label for="tax-value-min">Minimum Tax Value</label>
+                        <div class="input-group mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                          </div>
+                          <input
+                            id="tax-value-min"
+                            type="text"
+                            class="form-control"
+                            placeholder="0.00"
+                            aria-label="Amount (to the nearest dollar)"
+                          />
+                        </div>
+                      </div>
+                      !-- Max Tax Value --
+                      <div class="col-2">
+                        <label for="tax-value-max">Maximum Tax Value</label>
+                        <div class="input-group mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                          </div>
+                          <input
+                            id="tax-value-max"
+                            type="text"
+                            class="form-control"
+                            placeholder="+1000.00"
+                            aria-label="Amount (to the nearest dollar)"
+                          />
+                        </div>
+                      </div>
+                      !-- Minimum Rating --
+                      <div class="col-2">
+                        <label for="min-rating">Minimum Rating</label>
+                        <div class="input-group mb-3">
+                          <select class="custom-select" id="min-rating">
+                            <option selected>Any</option>
+                            <option value="1">⭐</option>
+                            <option value="2">⭐⭐</option>
+                            <option value="3">⭐⭐⭐</option>
+                            <option value="4">⭐⭐⭐⭐</option>
+                            <option value="5">⭐⭐⭐⭐⭐</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    -->
                   </form>
                 </div>
               </div>
 
               <!-- Search Information Bar -->
-              <div id="search-info" class="container mx-3 mt-4">
+              <div id="search-info" class="container mx-3 mt-4 d-block">
                 <div class="row">
                   <div class="display-6">0 Items Found</div>
                 </div>
               </div>
               <hr />
               <!-- Vine Items Container -->
-              <div id="items-container" class="container">
+              <div id="items-container" class="container-fluid border d-block">
                 <ul class="list-unstyled list-group"></ul>
               </div>
             </div>
@@ -243,8 +274,15 @@
                     <small class="text-muted"></small>
                   </div>
                 </div>
-                <div class="toast-body text-dark">
-                  It's time for an update! Updating the Item database.
+                <div class="toast-body text-dark pt-2">
+                  <div class="category-info mb-1">
+                    <div class="badge badge-primary">Category</div>
+                    &gt;
+                    <div class="badge badge-secondary">Subcategory</div>
+                  </div>
+                  <div class="item-info">
+                    It's time for an update! Updating the Item database.
+                  </div>
                 </div>
                 <div class="progress" style="height: 4px;">
                   <div

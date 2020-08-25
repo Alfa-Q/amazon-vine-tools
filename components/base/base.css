@@ -24,15 +24,24 @@
 }
 
 #main {
+  height: 100%;
+  padding-left: 0px;
+  padding-right: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+#main-body {
   margin-left: 0px;
   margin-right: 0px;
   margin-top: 8px;
+  min-width: 100%;
 }
 
 #sidebar {
   position: relative;
   top: -8px;
-  height: calc(100vh - 57px);
+  min-height: calc(100vh - 57px);
   overflow-x: hidden;
   overflow-y: auto;
   display: block;
@@ -75,8 +84,27 @@ button {
 }
 
 #items-container {
-  overflow-y: scroll;
-  max-height: 400px;
-  min-height: 400px;
-  min-width: 100%;
+  flex-grow: 1;
+  display: flex;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: absolute;
+  max-height: fit-content;
+}
+
+div[aria-expanded="true"] .chevron-down {
+  display: none;
+}
+
+div[aria-expanded="false"] .chevron-up {
+  display: none;
+}
+
+.unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
