@@ -101,6 +101,7 @@ function createWindow() {
     },
     frame: false,
     minWidth: 1240,
+    icon: path.join(__dirname, "/static/icon.png"),
   });
 }
 

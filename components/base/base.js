@@ -3,6 +3,9 @@
  *  - LAZY LOAD IMAGES TO IMPROVE SPEED
  *  - INCREASE LOAD TIME BY REMOVING POPUPS IF APP WAS ALREADY RUN
  *  - GET ADDITIONAL INFORMATION FOR ITEMS IN THE BACKGROUND WITHOUT AMAZON BANNING
+ *  - FIX ISSUE WHERE CATEGORY COUNT IS NOT BEING UPDATED CORRECTLY AFTER RETRIEVING NEW
+ *    ITEMS (this is because categories are not re-scraped when the items are re-scraped
+ *    which makes the category item count out of sync)
  */
 
 // Load Bootstrap and JQuery
@@ -15,11 +18,11 @@ const Swal = require("sweetalert2");
 const url = require("url");
 
 // Constants
-CACHED_ELEMENTS = {};
-ICON_ERROR = 0x274c;
-ICON_SUCCESS = 0x2714;
-ICON_RETRY = 0x1f504;
-ITEMS_PER_PAGE = 60; // The standard amount of items on each amazon page.
+const CACHED_ELEMENTS = {};
+const ICON_ERROR = 0x274c;
+const ICON_SUCCESS = 0x2714;
+const ICON_RETRY = 0x1f504;
+const ITEMS_PER_PAGE = 60; // The standard amount of items on each amazon page.
 const VIEW_MAP = {
   "btn-search": {
     title: "SEARCH AMAZON ITEMS",
@@ -348,8 +351,8 @@ async function addItemToContainer(item) {
     // Bind HTML to item
     item.html = `
     <li class="media my-2 border rounded border-secondary">
-      <img class="mr-3 img-thumbnail" src="${item.thumbnail}" loading="lazy" width="125px" height="125px">
-        <div class="media-body">
+      <img class="mr-3 img-thumbnail" src="${item.thumbnail}" loading="lazy" width="125px" height="125px" />
+      <div class="media-body">
         <div class="display-6 mt-2 mb-1">${item.productName}</div>
         <div class="mt-auto">
           <div class="badge badge-primary">${item.category}</div> &gt; 
