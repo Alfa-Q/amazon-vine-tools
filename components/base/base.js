@@ -64,6 +64,8 @@ window.addEventListener("load", async () => {
     updateCategoryDropdown();
   }
 
+  return;
+
   // Check if item db can be updated
   const itemDb = await checkItemDb();
   await sleep(6000);
@@ -371,11 +373,19 @@ async function updateCategoryDropdown() {
       categoryDropdown.append(`<option value="${category.name}">${category.name}</option>`);
     }, 0);
   });
+
   // Add event when selection changed to this category - update list of subcategories
   categoryDropdown.on("change", (event) => {
-    var optionSelected = subcategoryDropdown.find("option:selected");
-    console.log(`Category Is Changed To ${optionSelected.val()}`);
-    const category = categories.find((category) => category.name === optionSelected.val())[0];
+    var currentCategory = categoryDropdown.val();
+    console.log(`Category Is Changed To ${currentCategory}`);
+    const category = categories.filter((category) => category.name === currentCategory)[0];
+    console.log(category);
+
+    // Clear Subcategory and Add Default Option
+    subcategoryDropdown.html("");
+    subcategoryDropdown.append(`<option value="default" selected="">All</option>`);
+
+    // Add Each Subcategory
     category.subcategories.forEach((subcategory) => {
       setTimeout(() => {
         subcategoryDropdown.append(
@@ -383,7 +393,6 @@ async function updateCategoryDropdown() {
         );
       }, 0);
     });
-    categoryDropdown.refresh();
   });
 }
 
