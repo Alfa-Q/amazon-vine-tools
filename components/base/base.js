@@ -1,3 +1,10 @@
+/**
+ * TODO:
+ *  - LAZY LOAD IMAGES TO IMPROVE SPEED
+ *  - INCREASE LOAD TIME BY REMOVING POPUPS IF APP WAS ALREADY RUN
+ *  - GET ADDITIONAL INFORMATION FOR ITEMS IN THE BACKGROUND WITHOUT AMAZON BANNING
+ */
+
 // Load Bootstrap and JQuery
 // This fixes an electron bug where importing these scripts via HTML tag causes an error to occur.
 window.$ = window.jQuery = require("jquery");
@@ -63,8 +70,6 @@ window.addEventListener("load", async () => {
     console.log(categories);
     updateCategoryDropdown();
   }
-
-  return;
 
   // Check if item db can be updated
   const itemDb = await checkItemDb();
@@ -244,16 +249,25 @@ async function applyFilter() {
   const query = $("#filter-search").val().toLowerCase();
 
   // Get All Filter Values
-  const minTaxValue = parseInt($("#tax-value-min").val()) || 0;
-  const maxTaxValue = parseInt($("#tax-value-max").val()) || 2147483647;
-  const minRating = parseInt($("#min-rating").val()) || 0;
+  let category = $("#filter-category").val();
+  let subcategory = $("#filter-subcategory").val();
+  //const minTaxValue = parseInt($("#tax-value-min").val()) || 0;
+  //const maxTaxValue = parseInt($("#tax-value-max").val()) || 2147483647;
+  //const minRating = parseInt($("#min-rating").val()) || 0;
+
+  console.log(category);
+  console.log(subcategory);
 
   // Perform Filter
   filteredItems = items.filter((item) => {
-    return item.productName.toLowerCase().includes(query); //&&
-    //item.taxValue >= minTaxValue &&
-    //item.taxValue <= maxTaxValue &&
-    //item.avgRating >= minRating
+    return (
+      item.productName.toLowerCase().includes(query) &&
+      (item.category === category || category === "default") &&
+      (item.subcategory === subcategory || subcategory == "default")
+      //item.taxValue >= minTaxValue &&
+      //item.taxValue <= maxTaxValue &&
+      //item.avgRating >= minRating
+    );
   });
 
   console.log(filteredItems);
@@ -370,7 +384,9 @@ async function updateCategoryDropdown() {
   categories.forEach((category) => {
     // Add the option to the category dropdown list (Force DOM to Update)
     setTimeout(() => {
-      categoryDropdown.append(`<option value="${category.name}">${category.name}</option>`);
+      categoryDropdown.append(
+        `<option value="${category.name}">${category.name} (${category.itemCount})</option>`
+      );
     }, 0);
   });
 
