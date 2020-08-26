@@ -46,6 +46,11 @@ let filteredItems = [];
 // INITIALIZATION FUNCTIONS
 // ================================================================================================
 window.addEventListener("load", async () => {
+  if ("loading" in HTMLImageElement.prototype) {
+    // supported in browser
+    console.log("Supports Lazy Loading!");
+  }
+
   initView();
 
   // Retrieve App Settings
@@ -282,10 +287,12 @@ async function applyFilter() {
 async function clearFilter() {
   console.log("Clearing Filter!");
   $("#filter-search").val("");
-  $("#tax-value-min").val("");
-  $("#tax-value-max").val("");
-  $("#min-rating").val("Any");
-  $("#order-by").val("date-added");
+  $("#filter-category").val("default");
+  // $("#tax-value-min").val("");
+  // $("#tax-value-max").val("");
+  // $("#min-rating").val("Any");
+
+  $("#order-by").val("default");
   $("#order-direction").val("descending");
   filteredItems = items;
   updateItemsContainer(items);
@@ -341,7 +348,7 @@ async function addItemToContainer(item) {
     // Bind HTML to item
     item.html = `
     <li class="media my-2 border rounded border-secondary">
-      <img class="mr-3 img-thumbnail" src="${item.thumbnail}" width="125px">
+      <img class="mr-3 img-thumbnail" src="${item.thumbnail}" loading="lazy" width="125px" height="125px">
         <div class="media-body">
         <div class="display-6 mt-2 mb-1">${item.productName}</div>
         <div class="mt-auto">
@@ -355,15 +362,12 @@ async function addItemToContainer(item) {
     </li>`;
   }
 
-  // Run with Timeout to force DOM to update
-  // (without timeout the DOM doesn't update until the end of all promises)
-  setTimeout(() => {
-    const container = $("#items-container > ul");
-    // Append item to the container
-    container.append(item.html);
-    // Update Container Info
-    updateSearchInfo(container.find("li").length);
-  }, 0);
+  // Faster Load than SetTimeout Method
+  const container = $("#items-container > ul");
+  // Append item to the container
+  container.append(item.html);
+  // Update Container Info
+  updateSearchInfo(container.find("li").length);
 }
 
 function clearItemContainer() {
