@@ -1,74 +1,16 @@
-.bg-darkish {
-  background-color: darkslategray;
+body {
+  overflow-y: hidden;
 }
 
-.toast {
-  min-width: 400px;
-  margin-top: auto;
-}
-
-.toast-container {
-  min-width: 400px;
-  min-height: 200px;
-  position: absolute;
-  right: 0px;
-  bottom: 0px;
-  display: flex;
-  flex-direction: column-reverse;
-  flex-wrap: nowrap;
-}
-
-.bottom {
-  margin-top: auto;
-  bottom: 0px;
-}
-
-#main {
-  height: 100%;
-  padding-left: 0px;
-  padding-right: 0px;
-  margin-left: 0px;
-  margin-right: 0px;
-}
-
-#main-body {
-  margin-left: 0px;
-  margin-right: 0px;
-  margin-top: 8px;
-  min-width: 100%;
-}
-
-#sidebar {
-  position: relative;
-  top: -8px;
-  min-height: calc(100vh - 57px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  display: block;
-  margin-left: 0px;
-  margin-right: 0px;
-  width: 250px;
-  color: grey;
-}
-
-#sidebar .nav-item {
-  margin-top: 8px;
-  margin-left: 0px;
-  margin-right: 0px;
-  width: 100%;
-}
-
-#sidebar .nav-item button {
-  color: white;
-  width: 100%;
-}
-
-nav {
-  -webkit-app-region: drag;
-}
-
+/* ================================================================================================
+// GENERAL STYLES
+// ==============================================================================================*/
 button {
   -webkit-app-region: no-drag;
+}
+
+.bg-darkish {
+  background-color: darkslategray;
 }
 
 .display-5 {
@@ -83,15 +25,95 @@ button {
   line-height: 1.2;
 }
 
-#items-container {
-  flex-grow: 1;
-  display: flex;
-  overflow-y: auto;
-  overflow-x: auto;
-  position: absolute;
-  max-height: fit-content;
+.unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
+.span-empty {
+  margin: auto;
+}
+
+/* ================================================================================================
+// HEADER NAV
+// ==============================================================================================*/
+#header {
+  display: block;
+  margin-left: 0px;
+  margin-right: 0px;
+  /* Make top header portion drag-able */
+  -webkit-app-region: drag;
+}
+
+#header .navbar-brand {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+/* ================================================================================================
+// SIDEBAR NAV
+// ==============================================================================================*/
+#sidebar {
+  vertical-align: top;
+  display: inline-block;
+  height: calc(100vh - 57px);
+  width: 200px;
+  margin: 0px 0px;
+}
+
+#sidebar .container-fluid {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+#sidebar .nav-item {
+  margin-top: 8px;
+  margin-left: 0px;
+  margin-right: 0px;
+  width: 100%;
+}
+
+#sidebar .nav-item button {
+  color: white;
+  width: 100%;
+}
+
+#sidebar-bottom {
+  color: grey;
+  top: 0px;
+  margin-bottom: 12px;
+}
+
+/* ================================================================================================
+// MAIN
+// ==============================================================================================*/
+#main {
+  display: inline-block;
+  vertical-align: top;
+  padding: 0px 0px;
+  margin: 0px 0px;
+  width: calc(100vw - 222px);
+  height: calc(100vh - 57px);
+}
+
+#main-body {
+  min-height: calc(100vh - 96px);
+  max-height: calc(100vh - 96px);
+
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 8px;
+  padding-right: 0px;
+}
+
+/* ================================================================================================
+// FILTER
+// ==============================================================================================*/
 div[aria-expanded="true"] .chevron-down {
   display: none;
 }
@@ -100,11 +122,45 @@ div[aria-expanded="false"] .chevron-up {
   display: none;
 }
 
-.unselectable {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+/* ================================================================================================
+// SEARCH
+// ==============================================================================================*/
+#search {
+  /* Allow content to fill remaining height */
+  display: flex;
+  flex-flow: column;
+  min-height: 100%;
+}
+
+#search-info {
+  display: block;
+  margin-left: 18px;
+  margin-right: 18px;
+  margin-top: 24px;
+  color: white;
+}
+
+#items-container {
+  height: 100%;
+  overflow-y: scroll;
+  max-height: calc(100vh - 238px);
+}
+
+/* ================================================================================================
+// TOAST
+// ==============================================================================================*/
+.toast {
+  min-width: 400px;
+  margin-top: auto;
+}
+
+.toast-container {
+  min-width: 400px;
+  min-height: 200px;
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  display: flex;
+  flex-direction: column-reverse;
+  flex-wrap: nowrap;
 }

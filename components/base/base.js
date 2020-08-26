@@ -176,7 +176,7 @@ function updateToast(
   }
   if (body) {
     toast.find(".toast-body").text(body);
-    toast.find(".toast-body").html().replace(/\n/g, "<br/>");
+    // toast.find(".toast-body").html().replace(/\n/g, "<br/>");
   }
   if (muted) {
     toast.find(".text-muted").text(muted);
@@ -225,7 +225,20 @@ function handleOk(toast, toastTitle, toastMsg) {
 // ================================================================================================
 // SEARCH FUNCTIONS
 // ================================================================================================
+function searchForm() {
+  setTimeout(() => {
+    applyFilter();
+  }, 0);
+  // For hitting enter in the form
+  return false;
+}
+
 async function applyFilter() {
+  // Collapse Filter
+  setTimeout(() => {
+    $("#collapseBody").collapse("hide");
+  }, 0);
+
   const query = $("#filter-search").val().toLowerCase();
 
   // Get All Filter Values
@@ -345,7 +358,7 @@ function clearItemContainer() {
 
 function updateSearchInfo(itemsFound) {
   // Change Search Result Number
-  $("#search-info > div > div").text(`Search Results: ${itemsFound} Items Found`);
+  $("#search-info > div").text(`Search Results: ${itemsFound} Items Found`);
 }
 
 async function updateCategoryDropdown() {
@@ -543,4 +556,5 @@ ipcRenderer.on("update:item", async (event, item, current, total) => {
 async function wipeItemsDb(unlistedOnly = false) {
   const result = await ipcRenderer.invoke("wipe-db:items");
   console.log(result);
+  location.reload();
 }

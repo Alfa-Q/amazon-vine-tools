@@ -93,14 +93,14 @@ const SETTINGS = new Store({
  */
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    width: 1240,
+    height: 780,
     title: "Amazon Vine Tools",
     webPreferences: {
       nodeIntegration: true,
     },
     frame: false,
-    minWidth: 1400,
+    minWidth: 1240,
   });
 }
 
