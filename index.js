@@ -73,11 +73,11 @@ const SETTINGS = new Store({
     settings: {
       type: "object",
       properties: {
-        max_threads: {
+        items_per_page: {
           type: "number",
-          minimum: 1,
-          maximum: 50,
-          default: 5,
+          minimum: 7,
+          maximum: 200,
+          default: 60,
         },
       },
       default: {},

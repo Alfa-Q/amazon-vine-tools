@@ -16,6 +16,7 @@ window.Bootstrap = require("bootstrap");
 const ipcRenderer = require("electron").ipcRenderer;
 const Swal = require("sweetalert2");
 const url = require("url");
+const List = require("list.js");
 
 // Constants
 const CACHED_ELEMENTS = {};
@@ -37,13 +38,45 @@ const VIEW_MAP = {
     html: "settings",
   },
 };
+const ITEM_LIST_OPTS = {
+  pagination: true,
+  page: 0, // overwritten by settings later
+  valueNames: [
+    "productName",
+    "category",
+    "subcategory",
+    "page",
+    "position",
+    { name: "thumbnail", attr: "src" },
+    { name: "link", attr: "href" },
+  ],
+  // This describes how items must look like in HTML
+  item: `<li class="media my-2 border rounded border-secondary">
+      <img class="mr-3 img-thumbnail thumbnail" src="" loading="lazy" width="125px" height="125px" />
+      <div class="media-body">
+        <div class="productName display-6 mt-2 mb-1"></div>
+        <div class="mt-auto">
+          <div class="category badge badge-primary"></div> &gt; 
+          <div class="subcategory badge badge-secondary"></div> &gt; 
+          <div class="badge badge-info">
+            Page <div class="page d-inline-block"></div>
+          </div> &gt; 
+          <div class="badge badge-info">
+            Position <div class="position d-inline-block"></div>
+          </div>
+        </div>
+        <a class="link" href="" target="_blank">View In Amazon</a>
+      </div>
+    </li>`,
+};
 
 // State Variables
 let settings;
 let navigationBtn; // Current navigation page.
 let categories = [];
-let items = [];
-let filteredItems = [];
+let itemList;
+let page = 1;
+let scrolling = false;
 
 // ================================================================================================
 // INITIALIZATION FUNCTIONS
@@ -59,6 +92,9 @@ window.addEventListener("load", async () => {
   // Retrieve App Settings
   var result = await fetchSettings();
   settings = result.settings;
+
+  // Use settings
+  ITEM_LIST_OPTS.page = settings["items_per_page"];
 
   // Check if category db can be updated
   var result = await checkCategoryDb();
@@ -87,18 +123,19 @@ window.addEventListener("load", async () => {
     await sleep(6000);
   } else {
     $("#toast-4").remove();
-    // Load Items
-    var result = await fetchItems();
-    if (!result.error) {
-      items = result.items;
-      console.log(items);
-      await updateContainer(items);
-    }
+  }
+
+  // Load Items
+  var result = await fetchItems();
+  if (!result.error) {
+    const items = result.items;
+    console.log(items);
+    createItemList(items);
   }
 });
 
 $(document).on("ready", (event) => {
-  $(".btn").mousedown(function (e) {
+  $(".btn").mousedown((e) => {
     e.preventDefault();
   });
 });
@@ -164,6 +201,30 @@ function chunkify(arr, len) {
 // ================================================================================================
 // VIEW FUNCTIONS
 // ================================================================================================
+setInterval(() => {
+  if (scrolling) {
+    const container = $("#items-container");
+    const containerPosY = container.height(); // Y position of the container top
+    const scrollPosY = container.scrollTop(); // Scroll position Y
+
+    const containerList = $("#items-container > .list");
+    const containerListY = containerList.height(); // Container list height size
+
+    if (scrollPosY + containerPosY > containerListY - 100) {
+      console.log("Loading More Items!");
+      page++;
+      itemList.show(0, page * settings["items_per_page"]);
+    } else if (scrollPosY + containerPosY < containerPosY + 100) {
+      console.log("REACHED TOP!");
+    }
+    scrolling = false;
+  }
+}, 250);
+
+function scrollHandler() {
+  scrolling = true;
+}
+
 function updateView(btn) {
   console.log("Navigation Changed: Update View");
   const btnID = btn.getAttribute("id");
@@ -238,108 +299,13 @@ function handleOk(toast, toastTitle, toastMsg) {
 }
 
 // ================================================================================================
-// SEARCH FUNCTIONS
+// SEARCH AND FILTER FUNCTIONS
 // ================================================================================================
-function searchForm() {
-  setTimeout(() => {
-    applyFilter();
-  }, 0);
-  // For hitting enter in the form
-  return false;
-}
+function createItemList(items) {
+  console.log("Creating Item List");
+  itemList = new List("items-container", ITEM_LIST_OPTS);
 
-async function applyFilter() {
-  // Collapse Filter
-  setTimeout(() => {
-    $("#collapseBody").collapse("hide");
-  }, 0);
-
-  const query = $("#filter-search").val().toLowerCase();
-
-  // Get All Filter Values
-  let category = $("#filter-category").val();
-  let subcategory = $("#filter-subcategory").val();
-  //const minTaxValue = parseInt($("#tax-value-min").val()) || 0;
-  //const maxTaxValue = parseInt($("#tax-value-max").val()) || 2147483647;
-  //const minRating = parseInt($("#min-rating").val()) || 0;
-
-  console.log(category);
-  console.log(subcategory);
-
-  // Perform Filter
-  filteredItems = items.filter((item) => {
-    return (
-      item.productName.toLowerCase().includes(query) &&
-      (item.category === category || category === "default") &&
-      (item.subcategory === subcategory || subcategory == "default")
-      //item.taxValue >= minTaxValue &&
-      //item.taxValue <= maxTaxValue &&
-      //item.avgRating >= minRating
-    );
-  });
-
-  console.log(filteredItems);
-  filteredItems = sort(filteredItems);
-
-  // Apply Filter if Changes
-  await updateContainer(filteredItems)
-    .then(console.log("Updated Container!"))
-    .catch((error) => console.log(error));
-}
-
-async function clearFilter() {
-  console.log("Clearing Filter!");
-  $("#filter-search").val("");
-  $("#filter-category").val("default");
-  // $("#tax-value-min").val("");
-  // $("#tax-value-max").val("");
-  // $("#min-rating").val("Any");
-
-  $("#order-by").val("default");
-  $("#order-direction").val("descending");
-  filteredItems = items;
-  updateItemsContainer(items);
-}
-
-function sort(items) {
-  let sorted = items;
-  const method = $("#order-by").val();
-  const direction = $("#order-direction").val();
-  switch (method) {
-    case "default":
-      break;
-    case "name":
-      sorted = Array.from(items).sort((a, b) => {
-        return a.productName.localeCompare(b.productName, "en", { sensitivity: "base" });
-      });
-      break;
-    case "tax-value":
-      break;
-    case "rating":
-      break;
-    case "retail-value":
-      break;
-    case "percent-diff":
-      break;
-  }
-  if (direction == "ascending") {
-    sorted.reverse();
-  }
-  return sorted;
-}
-
-async function updateContainer(items) {
-  console.log("Updating item container.");
-  clearItemContainer();
-  for (chunk of chunkify(items, settings.max_threads)) {
-    const promises = chunk.map((item) => addItemToContainer(item));
-    await Promise.all(promises);
-  }
-}
-
-async function addItemToContainer(item) {
-  // Generate HTML for the Item if not Cached
-  if (item.html === undefined) {
+  items.map((item) => {
     // Generate fields and extract info to be placed in the HTML
     const page = Math.ceil(item.position / ITEMS_PER_PAGE);
     const category = categories.filter((category) => category.name === item.category)[0];
@@ -347,36 +313,82 @@ async function addItemToContainer(item) {
       (subcategory) => subcategory.name === item.subcategory
     )[0];
     const itemPageUrl = generateItemUrl(category.nodeId, subcategory.nodeId, item.position);
+    return {
+      ...item,
+      page: page,
+      link: itemPageUrl,
+    };
+  });
 
-    // Bind HTML to item
-    item.html = `
-    <li class="media my-2 border rounded border-secondary">
-      <img class="mr-3 img-thumbnail" src="${item.thumbnail}" loading="lazy" width="125px" height="125px" />
-      <div class="media-body">
-        <div class="display-6 mt-2 mb-1">${item.productName}</div>
-        <div class="mt-auto">
-          <div class="badge badge-primary">${item.category}</div> &gt; 
-          <div class="badge badge-secondary">${item.subcategory}</div> &gt; 
-          <div class="badge badge-info">Page ${page}</div> &gt; 
-          <div class="badge badge-info">Position ${item.position}</div>
-        </div>
-        <a href="${itemPageUrl}" target="_blank">View In Amazon</a>
-      </div>
-    </li>`;
-  }
-
-  // Faster Load than SetTimeout Method
-  const container = $("#items-container > ul");
-  // Append item to the container
-  container.append(item.html);
-  // Update Container Info
-  updateSearchInfo(container.find("li").length);
+  itemList.add(items, () => {
+    console.log(`Created Item List: ${itemList}`);
+    updateSearchInfo(itemList.items.length);
+  });
 }
 
-function clearItemContainer() {
-  const container = $("#items-container > ul");
-  updateSearchInfo(0);
-  container.empty();
+function searchForm() {
+  applyFilter();
+  // For hitting enter in the form
+  return false;
+}
+
+function applyFilter() {
+  // Collapse Filter
+  $("#collapseBody").collapse("hide");
+
+  // Remove old Filters
+  itemList.filter();
+
+  // Extract Filter Values
+  const query = $("#filter-search").val().toLowerCase();
+  let category = $("#filter-category").val();
+  let subcategory = $("#filter-subcategory").val();
+  //const minTaxValue = parseInt($("#tax-value-min").val()) || 0;
+  //const maxTaxValue = parseInt($("#tax-value-max").val()) || 2147483647;
+  //const minRating = parseInt($("#min-rating").val()) || 0;
+
+  // Perform Filter
+  itemList.filter((item) => {
+    const values = item.values();
+    return (
+      values.productName.toLowerCase().includes(query) &&
+      (values.category === category || category === "default") &&
+      (values.subcategory === subcategory || subcategory == "default")
+      //item.taxValue >= minTaxValue &&
+      //item.taxValue <= maxTaxValue &&
+      //item.avgRating >= minRating
+    );
+  });
+
+  // Extract Sort Method
+  const method = $("#order-by").val();
+  const direction = $("#order-direction").val();
+
+  console.log(`Sort Method: ${method} | Direction: ${direction}`);
+
+  // Sort Items
+  itemList.sort(method, { order: direction });
+
+  // Update Search Info
+  console.log(itemList.matchingItems);
+  updateSearchInfo(itemList.matchingItems.length);
+
+  // Scroll back to top
+  $("#items-container").scrollTop(0);
+}
+
+function clearFilter() {
+  console.log("Clearing Filter!");
+  $("#filter-search").val("");
+  $("#filter-category").val("default");
+  // $("#tax-value-min").val("");
+  // $("#tax-value-max").val("");
+  // $("#min-rating").val("Any");
+
+  $("#order-by").val("productName");
+  $("#order-direction").val("desc");
+  filteredItems = items;
+  updateItemsContainer(items);
 }
 
 function updateSearchInfo(itemsFound) {
@@ -576,10 +588,6 @@ ipcRenderer.on("update:item", async (event, item, current, total) => {
   notification.find(".badge-primary").text(item.category);
   notification.find(".badge-secondary").text(item.subcategory);
   $("#toast-4 .progress-bar").attr("style", `width: ${completion * 100}%;`);
-
-  // Add item to the container
-  items.push(item);
-  await addItemToContainer(item);
 });
 
 // ================================================================================================

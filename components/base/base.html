@@ -146,8 +146,7 @@
                       <label for="order-by">Order By</label>
                       <div class="input-group mb-3">
                         <select class="custom-select" id="order-by">
-                          <option value="default" selected>Default</option>
-                          <option value="name">Name</option>
+                          <option value="productName" selected>Name</option>
                           <option value="tax-value">Tax Value</option>
                           <option value="rating">Star Rating</option>
                           <option value="retail-value">Retail Value</option>
@@ -160,8 +159,8 @@
                       <label for="order-direction">Direction</label>
                       <div class="input-group mb-3">
                         <select class="custom-select" id="order-direction">
-                          <option value="descending" selected>Descending</option>
-                          <option value="ascending">Ascending</option>
+                          <option value="desc" selected>Descending</option>
+                          <option value="asc">Ascending</option>
                         </select>
                       </div>
                     </div>
@@ -254,8 +253,9 @@
           </div>
         </div>
         <!-- Vine Items Container -->
-        <div id="items-container" class="container-fluid">
-          <ul class="list-unstyled list-group"></ul>
+        <div id="items-container" class="container-fluid" onscroll="scrollHandler()">
+          <ul class="list list-unstyled list-group"></ul>
+          <ul class="pagination" hidden></ul>
         </div>
       </div>
 

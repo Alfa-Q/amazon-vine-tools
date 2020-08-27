@@ -144,6 +144,7 @@ div[aria-expanded="false"] .chevron-up {
   height: 100%;
   overflow-y: scroll;
   max-height: calc(100vh - 238px);
+  min-height: calc(100vh - 238px);
 }
 
 /* ================================================================================================
