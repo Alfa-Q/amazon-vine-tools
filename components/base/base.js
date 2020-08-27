@@ -1,7 +1,5 @@
 /**
  * TODO:
- *  - LAZY LOAD IMAGES TO IMPROVE SPEED
- *  - INCREASE LOAD TIME BY REMOVING POPUPS IF APP WAS ALREADY RUN
  *  - GET ADDITIONAL INFORMATION FOR ITEMS IN THE BACKGROUND WITHOUT AMAZON BANNING
  *  - FIX ISSUE WHERE CATEGORY COUNT IS NOT BEING UPDATED CORRECTLY AFTER RETRIEVING NEW
  *    ITEMS (this is because categories are not re-scraped when the items are re-scraped
@@ -96,18 +94,22 @@ window.addEventListener("load", async () => {
   // Use settings
   ITEM_LIST_OPTS.page = settings["items_per_page"];
 
-  // Check if category db can be updated
-  var result = await checkCategoryDb();
-  await sleep(6000);
-  if (!result.error && result.canUpdate) {
-    await updateCategoryDb();
+  // Can we skip the database update checks?
+  const skipChecks = await checkSkipInit();
+
+  if (!skipChecks) {
+    // Check if category db can be updated
+    var result = await checkCategoryDb();
     await sleep(6000);
-  } else {
-    $("#toast-2").remove();
+    if (!result.error && result.canUpdate) {
+      await updateCategoryDb();
+      await sleep(6000);
+    } else {
+      $("#toast-2").remove();
+    }
   }
 
   // Load Categories
-  // TODO: Store category info on update similar to how items are stored
   var result = await fetchCategories();
   if (!result.error) {
     categories = result.categories;
@@ -115,14 +117,16 @@ window.addEventListener("load", async () => {
     updateCategoryDropdown();
   }
 
-  // Check if item db can be updated
-  const itemDb = await checkItemDb();
-  await sleep(6000);
-  if (!itemDb.error && itemDb.canUpdate) {
-    await updateItemDb();
+  if (!skipChecks) {
+    // Check if item db can be updated
+    const itemDb = await checkItemDb();
     await sleep(6000);
-  } else {
-    $("#toast-4").remove();
+    if (!itemDb.error && itemDb.canUpdate) {
+      await updateItemDb();
+      await sleep(6000);
+    } else {
+      $("#toast-4").remove();
+    }
   }
 
   // Load Items
@@ -438,6 +442,11 @@ async function updateCategoryDropdown() {
 // ================================================================================================
 // BACKEND FUNCTIONS
 // ================================================================================================
+async function checkSkipInit() {
+  // Determine if we can skip pre-checks of whether items and category need an update.
+  return await ipcRenderer.invoke("check-skip-init");
+}
+
 async function checkCategoryDb() {
   // Display Toast
   const notification = $("#toast-1");

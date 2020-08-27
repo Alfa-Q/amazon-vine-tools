@@ -13,6 +13,7 @@ const { app, BrowserWindow, ipcMain, session } = electron;
 // GLOBALS
 // ================================================================================================
 let mainWindow;
+let isLoaded = false;
 const DB = Object.freeze({
   ITEM_CATEGORIES: new PouchDB("categories"),
   ITEMS: new PouchDB("vine-items"),
@@ -381,6 +382,9 @@ async function getVineItemData(scrapedItem, referer = null) {
 // ================================================================================================
 // BACKEND EVENT HANDLER FUNCTIONS
 // ================================================================================================
+ipcMain.handle("check-skip-init", async (event) => {
+  return isLoaded;
+});
 
 ipcMain.handle("check-update:categories", async (event) => {
   try {
@@ -552,6 +556,7 @@ ipcMain.handle("fetch-db:categories", async (event) => {
 ipcMain.handle("fetch-db:items", async (event) => {
   try {
     console.log("\n", "Fetching items from database...");
+    isLoaded = true; // App has already been initialized once this run.
     return await DB.ITEMS.allDocs({ include_docs: true })
       .then((result) => result.rows.map((row) => row.doc))
       .then((items) => {
