@@ -202,6 +202,7 @@ function chunkify(arr, len) {
 // VIEW FUNCTIONS
 // ================================================================================================
 setInterval(() => {
+  // Infinite Scroll Using Pagination
   if (scrolling) {
     const container = $("#items-container");
     const containerPosY = container.height(); // Y position of the container top
@@ -333,6 +334,9 @@ function searchForm() {
 }
 
 function applyFilter() {
+  // Page is reset to the start page
+  page = 1;
+
   // Collapse Filter
   $("#collapseBody").collapse("hide");
 
