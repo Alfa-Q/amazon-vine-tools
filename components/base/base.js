@@ -310,7 +310,7 @@ function createItemList(items) {
   console.log("Creating Item List");
   itemList = new List("items-container", ITEM_LIST_OPTS);
 
-  items.map((item) => {
+  items = items.map((item) => {
     // Generate fields and extract info to be placed in the HTML
     const page = Math.ceil(item.position / ITEMS_PER_PAGE);
     const category = categories.filter((category) => category.name === item.category)[0];
